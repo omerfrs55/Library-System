@@ -103,7 +103,7 @@ def kullanici_dogrula(dosya, kullanici_adi, sifre):
             return True  # Kullanıcı bulunduysa True döndür
     return False
 
-# Yeni kitap ID'si oluşturur (max veya str kullanılmadan)
+# Yeni kitap ID'si oluşturur
 def yeni_kitap_id():
     kitaplar = satirlari_oku("kitaplar")
     mevcut_idler = []
