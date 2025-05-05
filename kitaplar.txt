@@ -1,2 +1,31 @@
 1001,Harry Potter Azkaban,roman,1,2
-1002,harry potter,roman,1,2
+1001,Gizemli Orman,Fantastik,1,2
+1002,Zamanın Ötesinde,Macera,1,4
+1003,Yıldızların Peşinde,Bilim Kurgu,1,6
+1004,Saklı Gerçekler,Polisiye,1,8
+1005,Kırık Saat,Felsefe,1,10
+1006,Son Şövalye,Tarih,2,2
+1007,Denizin Şarkısı,Romantik,2,4
+1008,Gece ve Sis,Gerilim,2,6
+1009,Buzul Çağı,Bilim,2,8
+1010,Kayıp Masallar,Edebiyat,2,10
+1011,İlkbahar Rüzgarı,Fantastik,3,2
+1012,Gölgenin Ardında,Macera,3,4
+1013,Astronot Günlüğü,Bilim Kurgu,3,6
+1014,Kanıt Peşinde,Polisiye,3,8
+1015,Paradoks,Felsefe,3,10
+1016,Osmanlı'nın İzinde,Tarih,4,2
+1017,Kırık Kalpler,Romantik,4,4
+1018,Karanlık Oda,Gerilim,4,6
+1019,Bilim Devrimi,Bilim,4,8
+1020,Yitik Kelimeler,Edebiyat,4,10
+1021,Büyülü Diyar,Fantastik,5,2
+1022,Kayıp Tapınak,Macera,5,4
+1023,Geleceğin Kodları,Bilim Kurgu,5,6
+1024,Zehirli Gerçekler,Polisiye,5,8
+1025,Düşünce Labirenti,Felsefe,5,10
+1026,İmparatorluk Günlüğü,Tarih,6,2
+1027,Aşkın Melodisi,Romantik,6,4
+1028,Gizemli Güç,Gerilim,6,6
+1029,Büyük Buluşlar,Bilim,6,8
+1030,Eski Dünyanın Hikayesi,Edebiyat,6,10
