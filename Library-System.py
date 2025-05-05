@@ -26,6 +26,15 @@ def kitap_al(kullanici_adi):
         input("\nAna menüye dönmek için Enter'a basın...")
         return  # Fonksiyondan çıkılır
 
+        # Kullanıcının zaten kitabı var mı kontrolü
+    emanetler = satirlari_oku("emanetler")
+    for satir in emanetler:
+        ogrenci, _, _, _ = satir.split(",")
+        if ogrenci == kullanici_adi:
+            print("\n⚠️ Zaten bir kitap almışsınız. Önce mevcut kitabı teslim etmelisiniz.")
+            input("\nAna menüye dönmek için Enter'a basın...")
+            return
+
     for kitap in kitaplar:  # Kitaplar ekrana yazdırılır
         print(kitap)
 
@@ -100,9 +109,12 @@ def satirlari_yaz(dosya, satirlar):
 def kullanici_dogrula(dosya, kullanici_adi, sifre):
     for satir in satirlari_oku(dosya):
         ad, pw = satir.split(",")
-        if kullanici_adi == ad and sifre == pw:
-            return True  # Kullanıcı bulunduysa True döndür
+           # Boşlukları yok sayarak ve büyük/küçük harf duyarsız karşılaştırma
+        if (kullanici_adi.replace(" ", "").lower() == kullanici_adi.replace(" ", "").lower()
+            and sifre == pw):
+            return True
     return False
+
 
 # Yeni kitap ID'si oluşturur (max veya str kullanılmadan)
 def yeni_kitap_id():
@@ -246,60 +258,148 @@ def kitap_onerilerini_goster(kullanici_adi):
         input("\nAna menüye dönmek için Enter'a basın...")
         return
 
-    # Öğrencinin okuduğu kategoriler (Student's read categories)
-    okunan_kategoriler = ogrenci_okuma_gecmisi(kullanici_adi)
+    # Filtreleme seçenekleri
+    print("\n🔍 Filtreleme Seçenekleri:")
+    print("1 - Puan + Tür (Okuduğunuz türlerden en yüksek puanlılar)")
+    print("2 - Sadece Puan (Tüm kitaplarda en yüksek puanlılar)")
+    print("3 - Tüm Kitaplar (Puansız da dahil tüm kitaplar)")
+    print("4 - Tür Seçimi (Belirli bir türdeki tüm kitaplar)")
 
-    # Kitapları kategorilere göre grupla (Group books by category)
-    kitaplar_kategorili = {}
-    for kid, kitap in puanlar.items():
-        kategori = kitap['kategori']
-        if kategori not in kitaplar_kategorili:
-            kitaplar_kategorili[kategori] = []
-        kitaplar_kategorili[kategori].append(kitap)
-## buble sort algoritması
-# Önerileri göster (Show recommendations)
-if okunan_kategoriler:
-    print("\n🚀 Okuduğunuz kategorilerden öneriler:")
-    for kategori in okunan_kategoriler:
-        if kategori in kitaplar_kategorili:
-            # Bubble Sort algoritması ile kitapları ortalama puana göre sırala
-            # (Sort books by average rating using Bubble Sort algorithm)
-            kitaplar = kitaplar_kategorili[kategori]
-            n = len(kitaplar)
-            
-            # Dış döngü - her geçişte en büyük eleman sona atılır
-            # (Outer loop - with each pass, the largest element bubbles to the end)
-            for i in range(n-1):
-                # İç döngü - komşu elemanları karşılaştır
-                # (Inner loop - compare adjacent elements)
-                for j in range(0, n-i-1):
-                    # Eğer önceki kitabın puanı sonrakinden küçükse yer değiştir
-                    # (If previous book's rating is lower than next, swap them)
-                    if kitaplar[j]['ortalama'] < kitaplar[j+1]['ortalama']:
-                        # Geçici değişken kullanarak swap işlemi
-                        # (Swap operation using temporary variable)
-                        temp = kitaplar[j]
-                        kitaplar[j] = kitaplar[j+1]
-                        kitaplar[j+1] = temp
-            
-            print(f"\n📚 {kategori} Kategorisi:")
-            # En yüksek puanlı ilk 3 kitabı göster
-            # (Show top 3 highest rated books)
-            for i in range(min(3, len(kitaplar))):  # Listenin uzunluğunu kontrol et
-                kitap = kitaplar[i]
-                print(f"{i+1}. {kitap['kitap_adi']} - ⭐ {kitap['ortalama']:.1f}")
+    secim = input("\nFiltreleme seçiminiz (1-4): ")
 
-    # Genel öneriler (General recommendations)
-    print("\n🌟 En Yüksek Puanlı Kitaplar:")
-    tum_kitaplar = list(puanlar.values())
-    tum_kitaplar.sort(key=lambda x: x['ortalama'], reverse=True)
+    if secim == "1":  # Puan + Tür
+        okunan_kategoriler = ogrenci_okuma_gecmisi(kullanici_adi)
 
-    for i, kitap in enumerate(tum_kitaplar[:5], 1):  # İlk 5 kitap (First 5 books)
-        print(f"{i}. {kitap['kitap_adi']} - ⭐ {kitap['ortalama']:.1f} - {kitap['kategori']}")
+        if not okunan_kategoriler:
+            print("\n⚠️ Henüz okuma geçmişiniz yok.")
+            input("\nAna menüye dönmek için Enter'a basın...")
+            return
+
+        print("\n🚀 Okuduğunuz türlerden en yüksek puanlı kitaplar:")
+
+        # Kitapları kategorilere göre grupla
+        kitaplar_kategorili = {}
+        for kid, kitap in puanlar.items():
+            kategori = kitap['kategori']
+            if kategori not in kitaplar_kategorili:
+                kitaplar_kategorili[kategori] = []
+            kitaplar_kategorili[kategori].append(kitap)
+
+        for kategori in okunan_kategoriler:
+            if kategori in kitaplar_kategorili:
+                # Bubble Sort ile sıralama
+                kitaplar = kitaplar_kategorili[kategori]
+                n = len(kitaplar)
+                takas_yapildi = True
+
+                for i in range(n-1):
+                    if not takas_yapildi:
+                        break
+                    takas_yapildi = False
+
+                    for k in range(0, n-i-1):
+                        if kitaplar[k]['ortalama'] < kitaplar[k+1]['ortalama']:
+                            kitaplar[k], kitaplar[k+1] = kitaplar[k+1], kitaplar[k]
+                            takas_yapildi = True
+
+                print(f"\n📚 {kategori} Kategorisi:")
+                for i in range(min(3, len(kitaplar))):
+                    kitap = kitaplar[i]
+                    print(f"{i+1}. {kitap['kitap_adi']} - ⭐ {kitap['ortalama']:.1f}")
+
+    elif secim == "2":  # Sadece Puan
+        print("\n🌟 Tüm Kitaplarda En Yüksek Puanlılar:")
+
+        tum_kitaplar = list(puanlar.values())
+
+        # Bubble Sort ile sıralama
+        n = len(tum_kitaplar)
+        takas_yapildi = True
+
+        for i in range(n-1):
+            if not takas_yapildi:
+                break
+            takas_yapildi = False
+
+            for k in range(0, n-i-1):
+                if tum_kitaplar[k]['ortalama'] < tum_kitaplar[k+1]['ortalama']:
+                    tum_kitaplar[k], tum_kitaplar[k+1] = tum_kitaplar[k+1], tum_kitaplar[k]
+                    takas_yapildi = True
+
+        for i in range(min(10, len(tum_kitaplar))):
+            kitap = tum_kitaplar[i]
+            print(f"{i+1}. {kitap['kitap_adi']} - ⭐ {kitap['ortalama']:.1f} - {kitap['kategori']}")
+
+    elif secim == "3":  # Tüm Kitaplar
+        print("\n📚 Tüm Kitaplar (Puansız da dahil):")
+
+        tum_kitaplar = satirlari_oku("kitaplar")
+        puanli_kitaplar = [kitap['kitap_adi'] for kitap in puanlar.values()]
+
+        for i, kitap in enumerate(tum_kitaplar, 1):
+            parts = kitap.split(",")
+            kitap_adi = parts[1] if len(parts) > 1 else "Bilinmeyen"
+            durum = "⭐ Puanlı" if kitap_adi in puanli_kitaplar else "📖 Puansız"
+            print(f"{i}. {kitap_adi} - {durum}")
+
+    elif secim == "4":  # Tür Seçimi
+        print("\n📂 Mevcut Türler:")
+
+        # Tüm türleri listele
+        kitaplar = satirlari_oku("kitaplar")
+        tum_turler = set()
+
+        for kitap in kitaplar:
+            parts = kitap.split(",")
+            if len(parts) > 2:
+                tum_turler.add(parts[2])
+
+        for i, tur in enumerate(sorted(tum_turler), 1):
+            print(f"{i}. {tur}")
+
+        tur_secim = input("\nGörüntülemek istediğiniz tür numarası: ")
+
+        try:
+            tur_secim = int(tur_secim)
+            secilen_tur = sorted(tum_turler)[tur_secim-1]
+
+            print(f"\n📚 {secilen_tur} Türündeki Kitaplar:")
+
+            # Puanlı kitapları göster
+            puanli_kitaplar = []
+            for kid, kitap in puanlar.items():
+                if kitap['kategori'] == secilen_tur:
+                    puanli_kitaplar.append(kitap)
+
+            if puanli_kitaplar:
+                print("\n⭐ Puanlı Kitaplar:")
+                for i, kitap in enumerate(puanli_kitaplar, 1):
+                    print(f"{i}. {kitap['kitap_adi']} - ⭐ {kitap['ortalama']:.1f}")
+
+            # Puansız kitapları göster
+            puansiz_kitaplar = []
+            for kitap in kitaplar:
+                parts = kitap.split(",")
+                if len(parts) > 2 and parts[2] == secilen_tur:
+                    kitap_adi = parts[1]
+                    if not any(k['kitap_adi'] == kitap_adi for k in puanli_kitaplar):
+                        puansiz_kitaplar.append(kitap_adi)
+
+            if puansiz_kitaplar:
+                print("\n📖 Puansız Kitaplar:")
+                for i, kitap in enumerate(puansiz_kitaplar, 1):
+                    print(f"{i}. {kitap}")
+
+            if not puanli_kitaplar and not puansiz_kitaplar:
+                print("\n⚠️ Bu türde kitap bulunamadı.")
+
+        except (ValueError, IndexError):
+            print("\n⚠️ Geçersiz tür seçimi!")
+
+    else:
+        print("\n⚠️ Geçersiz seçim!")
 
     input("\nAna menüye dönmek için Enter'a basın...")
-
-
 # Kütüphaneci paneli işlemleri
 
 # Kütüphaneci paneli
