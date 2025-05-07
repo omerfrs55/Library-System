@@ -1,572 +1,573 @@
 # -*- coding: utf-8 -*-
-import os  # İşletim sistemi ile ilgili işlemler için kullanılır
-import time  # Bekleme ve zamanlama işlemleri için kullanılır
-from datetime import datetime, timedelta  # Tarih ve zaman işlemleri için kullanılır
+import os  # Used for operations related to the operating system // İşletim sistemi ile ilgili işlemler için kullanırız
+import time  # Used for waiting and timing operations // Bekleme ve zamanlama işlemleri için kullanırız
+from datetime import datetime, timedelta  # Used for date and time operations // Tarih ve zaman işlemleri için kullanırız
 
-# Dosya yollarını belirtiyoruz. Her dosya verileri saklamak için kullanılır.
-dosyalar = {
-    "ogrenciler": "ogrenciler.txt",  # Öğrenci bilgileri
-    "kitaplar": "kitaplar.txt",  # Kitap kayıtları
-    "emanetler": "emanet_edilenler.txt",  # Emanet edilen kitaplar
-    "teslimler": "teslim_edilenler.txt",  # Teslim edilen kitaplar
-    "kutuphaneci": "kutuphaneci.txt", #Kütüphanecinin kullanıcı adı ve şifresi
-     "puanlar": "kitap_puanlari.txt" ##kitap puanları öneri için
+# We specify the file paths. Each file is used to store data. // Dosya yollarını belirtiyoruz. Her dosya verilerimizi saklamak için kullanıyoruz
+files = {
+    "students": "students.txt",  # Student information // Öğrenci bilgileri
+    "books": "books.txt",  # Book records // Kitap kayıtları
+    "entrust": "entrust.txt",  # Books entrusted // Emanet edilen kitaplar
+    "delivered": "delivered.txt",  # Delivered books // Teslim edilen kitaplar
+    "librarian": "librarian.txt", #Librarian's username and password // Kütüphanecinin kullanıcı adı ve şifresi
+    "score": "scores.txt" #book scores for recommendation // kitap puanları öneri için
 }
 
-# Yardımcı fonksiyonlar
+# Our auxiliary functions // Yardımcı fonksiyonlarımız
 
-def kitap_al(kullanici_adi):
-    temizle()  # Ekranı temizler
+def getBook(userName):
+    clear()  # Cleans the screen // Ekranı temizler
 
-    print("\n📖 Mevcut Kitaplar:\n")
-    kitaplar = satirlari_oku("kitaplar")  # Kitaplar dosyasından veriler okunur
+    print("\n📖 Available Books:\n")
+    books = readLines("books")  # Data is read from the books file // Kitaplar dosyasından veriler okunur
 
-    if not kitaplar:  # Kitap listesi boşsa kullanıcıya bildirilir
-        print("⚠️ Kitap listesi şu anda boş.")
-        input("\nAna menüye dönmek için Enter'a basın...")
-        return  # Fonksiyondan çıkılır
+    if not books:  # If the book list is empty, the user is notified // Kitap listesi boşsa kullanıcıya bildirilir
+        print("⚠️ The book list is currently empty.")
+        input("\nPress Enter to return to the main menu...")
+        return  # The function is exited // Fonksiyondan çıkılır
 
-        # Kullanıcının zaten kitabı var mı kontrolü
-    emanetler = satirlari_oku("emanetler")
-    for satir in emanetler:
-        ogrenci, _, _, _ = satir.split(",")
-        if ogrenci == kullanici_adi:
-            print("\n⚠️ Zaten bir kitap almışsınız. Önce mevcut kitabı teslim etmelisiniz.")
-            input("\nAna menüye dönmek için Enter'a basın...")
+        # Check if the user already has a book // Kullanıcının zaten kitabı var mı kontrolü
+    entrust = readLines("entrust")
+    for line in entrust:
+        student, _, _, _ = line.split(",")
+        if student == userName:
+            print("\n⚠️ You have already got a book. You must return the current book first.")
+            input("\nPress Enter to return to the main menu...")
             return
 
-    for kitap in kitaplar:  # Kitaplar ekrana yazdırılır
-        print(kitap)
+    for book in books:  # Books are printed on the screen // Kitaplar ekrana yazdırılır
+        print(book)
 
-    print("\n📥 Kitap Alma İşlemi")
+    print("\n📥 Book Getting Process")
 
-    # Öğrenciden almak istediği kitap ID'si istenir
-    kitap_id = input("Almak istediğiniz kitap ID'si: ")
+    # The student is asked for the book ID he/she wants to get. // Öğrenciden almak istediği kitap ID'si istenir
+    bookID = input("Book ID you want to get: ")
 
-    # Daha önce alınmış kitapları kontrol etmek için emanetler dosyası okunur
-    emanetler = satirlari_oku("emanetler")
+    # The relics file is read to check previously acquired books // Daha önce alınmış kitapları kontrol etmek için emanetler dosyası okunur
+    entrust = readLines("entrust")
 
-    # Aynı kitabın daha önce alınıp alınmadığını kontrol ederiz
-    for satir in emanetler:
-        ogrenci, kid, _, _ = satir.split(",")  # satır virgülle ayrılır
-        if ogrenci == kullanici_adi and kid == kitap_id:
-            print("\n⚠️ Bu kitabı zaten aldınız. Teslim etmeden tekrar alamazsınız.")
-            input("\nAna menüye dönmek için Enter'a basın...")
-            return  # Kitap alma işlemi iptal edilir
+    # We check if the same book has been purchased before // Aynı kitabın daha önce alınıp alınmadığını kontrol ederiz
+    for line in entrust:
+        student, kid, _, _ = line.split(",")  # line separated by commas // satır virgülle ayrılır
+        if student == userName and kid == bookID:
+            print("\n⚠️ You've already got this book. You can't get it again without returning it.")
+            input("\nPress Enter to return to the main menu...")
+            return  # Book purchase is cancelled // Kitap alma işlemi iptal edilir
 
-    # İstenilen kitap ID'sine sahip kitabı bulmak için arama yapılır
-    secilen_kitap = None
-    for kitap in kitaplar:
-        parcalar = kitap.split(",")  # kitap verileri virgülle ayrılır
-        if parcalar[0] == kitap_id:  # ID eşleşirse
-            secilen_kitap = parcalar
-            break  # kitap bulunduğunda döngüden çıkılır
+    # A search is performed to find the book with the desired book ID // İstenilen kitap ID'sine sahip kitabı bulmak için arama yapılır
+    chosenBook = None
+    for book in books:
+        pieces = book.split(",")  # book data is separated by commas // kitap verileri virgülle ayrılır
+        if pieces[0] == bookID:  # If ID matches // ID eşleşirse
+            chosenBook = pieces
+            break  # When the book is found the loop is exited // kitap bulunduğunda döngüden çıkılır
 
-    if not secilen_kitap:  # Eğer kitap bulunamazsa
-        print("\n❌ Geçersiz kitap ID.")
-        input("\nAna menüye dönmek için Enter'a basın...")
-        return  # Fonksiyondan çıkılır
+    if not chosenBook:  # If the book is not found // Eğer kitap bulunamazsa
+        print("\n❌ Invalid book ID.")
+        input("\nPress Enter to return to the main menu...")
+        return  # The function is exited // Fonksiyondan çıkılır
 
-    # Kitap alma tarihi bugünün tarihi olarak alınır
-    alis_tarihi = datetime.now().strftime("%Y-%m-%d")
+    # The book purchase date is taken as today's date // Kitap alma tarihi bugünün tarihi olarak alınır
+    gettingDate = datetime.now().strftime("%Y-%m-%d")
 
-    # Teslim tarihi kitap alındıktan 14 gün sonrası olarak hesaplanır
-    teslim_tarihi = (datetime.now() + timedelta(days=14)).strftime("%Y-%m-%d")
+    # Delivery date is calculated as "14" days after the book is received. // Teslim tarihi kitap alındıktan "14" gün sonrası olarak hesaplanır
+    deadline = (datetime.now() + timedelta(days=14)).strftime("%Y-%m-%d")
 
-    # Kitap emanet kaydı oluşturulur: öğrenci adı, kitap ID, kitap adı, alış tarihi
-    kayit = f"{kullanici_adi},{secilen_kitap[0]},{secilen_kitap[1]},{alis_tarihi}"
-    satira_ekle("emanetler", kayit)  # emanet dosyasına kayıt eklenir
+    # Book deposit record is created: student username, book ID, book name, purchase date // Kitap emanet kaydı oluşturulur: öğrenci kullanıcı adı, kitap ID, kitap adı, alış tarihi
+    registry = f"{userName},{chosenBook[0]},{chosenBook[1]},{gettingDate}"
+    addToLine("entrust", registry)  # Record added to escrow file // emanet dosyasına kayıt eklenir
 
-    # Kullanıcıya bilgi verilir
-    print(f"\n✅ '{secilen_kitap[1]}' adlı kitap başarıyla alındı.")
-    print(f"📅 Son teslim tarihi: {teslim_tarihi}")
-    input("\nAna menüye dönmek için Enter'a basın...")
+    # The user is informed // Kullanıcıya bilgi verilir
+    print(f"\n✅ '{chosenBook[1]}' ")
+    print(f"📅 Deadline: {deadline}")
+    input("\nPress Enter to return to the main menu...")
 
-def temizle():
-    os.system("cls" if os.name == "nt" else "clear")  # Windows için cls, diğerleri için clear ile ekranı temizler
+def clear():
+    os.system("cls" if os.name == "nt" else "clear")  # Clears the screen with cls for Windows and clear for others // Windows için cls, diğerleri için clear ile ekranı temizler
 
 def tarih_str():
-    return datetime.now().strftime("%Y-%m-%d")  # Bugünün tarihini "yyyy-aa-gg" formatında döndürür
+    return datetime.now().strftime("%Y-%m-%d")  # Returns today's date in "yyyy-mm-dd" format // Bugünün tarihini "yyyy-aa-gg" formatında döndürür
 
-def dosya_var_mi():
-    for dosya in dosyalar.values():
-        if not os.path.exists(dosya):  # Eğer dosya yoksa oluştur
-            open(dosya, "w", encoding="utf-8").close()
+def isFileExistent(): # dosya var mi ?
+    for file in files.values():
+        if not os.path.exists(file):  # If file does not exist, create it // Eğer dosya yoksa oluştur
+            open(file, "w", encoding="utf-8").close()
 
-def satirlari_oku(dosya):
-    with open(dosyalar[dosya], "r", encoding="utf-8") as f:
-        return [line.strip() for line in f.readlines() if line.strip()]  # Dosyadaki satırları temizleyip listeler
+def readLines(file):
+    with open(files[file], "r", encoding="utf-8") as f:
+        return [line.strip() for line in f.readlines() if line.strip()]  # Clears and lists lines in a file // Dosyadaki satırları temizleyip listeler
 
-def satira_ekle(dosya, veri):
-    with open(dosyalar[dosya], "a", encoding="utf-8") as f:
-        f.write(veri + "\n")  # Dosyanın sonuna veri ekler
+def addToLine(file, data):
+    with open(files[file], "a", encoding="utf-8") as f:
+        f.write(data + "\n")  # Appends data to the end of the file // Dosyanın sonuna veri ekler
 
-def satirlari_yaz(dosya, satirlar):
-    with open(dosyalar[dosya], "w", encoding="utf-8") as f:
-        f.write("\n".join(satirlar) + "\n")  # Dosyaya satırları yeniden yazar
+def writeLines(file, lines):
+    with open(files[file], "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")  # Rewrites lines to file // Dosyaya satırları yeniden yazar
 
-# Kullanıcı adı ve şifre doğrulama işlemi (büyük küçük harf duyarlı)
-def kullanici_dogrula(dosya, kullanici_adi, sifre):
-    for satir in satirlari_oku(dosya):
-        ad, pw = satir.split(",")
-           # Boşlukları yok sayarak ve büyük/küçük harf duyarsız karşılaştırma
-        if (kullanici_adi.replace(" ", "").lower() == kullanici_adi.replace(" ", "").lower()
-            and sifre == pw):
+# Username and password verification process (case sensitive) // Kullanıcı adı ve şifre doğrulama işlemi (büyük küçük harf duyarlı)
+def userVerify(file, userName, password):
+    for line in readLines(file):
+        ad, pw = line.split(",")
+           # Comparison ignoring spaces and case insensitive // Boşlukları yok sayarak ve büyük/küçük harf duyarsız karşılaştırma
+        if (userName.replace(" ", "").lower() == userName.replace(" ", "").lower()
+            and password == pw):
             return True
     return False
 
 
-# Yeni kitap ID'si oluşturur (max veya str kullanılmadan)
-def yeni_kitap_id():
-    kitaplar = satirlari_oku("kitaplar")
-    mevcut_idler = []
-    for line in kitaplar:
-        parcalar = line.split(",")
-        if len(parcalar) > 0:
-            id_kontrol = parcalar[0]
-            if id_kontrol.isdigit():
-                mevcut_idler.append(int(id_kontrol))
-    yeni_id = 1001
-    for id_num in mevcut_idler:
-        if id_num >= yeni_id:
-            yeni_id = id_num + 1
-    return yeni_id  # En büyük ID bulunup 1 artırılır
+# Creates new book ID // Yeni kitap ID'si oluşturur
+def newBookID():
+    books = readLines("books")
+    availableIDs = []
+    for line in books:
+        pieces = line.split(",")
+        if len(pieces) > 0:
+            idCheck = pieces[0]
+            if idCheck.isdigit():
+                availableIDs.append(int(idCheck))
+    newID = 1001
+    for id_num in availableIDs:
+        if id_num >= newID:
+            newID = id_num + 1
+    return newID  # The largest ID is found and increased by 1
 
-# Kitap teslim işlemleri ##Güncellenmiş Kitap teslim al
-# Kitap teslim fonksiyonuna puanlama ekleniyor (Adding rating to book return function)
-def kitap_teslim_et():
-    temizle()
-    print("\n📚 Kitap Teslim Etme Ekranı")
-    ad = input("Adınız: ")
-    soyad = input("Soyadınız: ")
-    ogr_adi = f"{ad} {soyad}"
-    kitap_id = input("Teslim etmek istediğiniz kitap ID: ")
-    bugun = datetime.now()
+# Book delivery procedures // Kitap teslim işlemleri
+# Adding rating system to book return function // Kitap teslim fonksiyonuna puanlama sistemini ekliyoruz
+def deliverAbook():
+    clear()
+    print("\n📚 Book Delivery Screen")
+    ad = input("Your username: ")
+    stuName = f"{ad}"
+    bookID = input("Book ID you want to deliver: ")
+    today = datetime.now()
 
-    emanetler = satirlari_oku("emanetler")
-    yeni_emanetler = []
-    teslim_edilen = False
+    entrust = readLines("entrust")
+    newEntrust = []
+    delivered = False
 
-    for satir in emanetler:
-        ogr, kid, kitap_adi, alis_tarihi = satir.split(",")
-        if ogr == ogr_adi and kid == kitap_id:
-            teslim_edilen = True
-            alis_dt = datetime.strptime(alis_tarihi, "%Y-%m-%d")
-            fark = (bugun - alis_dt).days
-            gec_teslim = "GEÇ TESLİM" if fark > 14 else ""
-            teslim_kaydi = f"{ogr},{kid},{kitap_adi},{bugun.strftime('%Y-%m-%d')},{gec_teslim}"
-            satira_ekle("teslimler", teslim_kaydi)
+    for line in entrust:
+        stu, kid, bookName, gettingDate = line.split(",")
+        if stu == stuName and kid == bookID:
+            delivered = True
+            alis_dt = datetime.strptime(gettingDate, "%Y-%m-%d")
+            fark = (today - alis_dt).days
+            lateDelivery = "LATE DELIVERY" if fark > 14 else ""
+            deliveryRecord = f"{stu},{kid},{bookName},{today.strftime('%Y-%m-%d')},{lateDelivery}"
+            addToLine("delivered", deliveryRecord)
 
-            # Kitap kategorisini bul (Find book category)
-            kitaplar = satirlari_oku("kitaplar")
-            kategori = "Bilinmiyor"
-            for kitap in kitaplar:
-                parts = kitap.split(",")
+            # Find book category // Kitap kategorisini bul
+            books = readLines("books")
+            category = "Unknown"
+            for book in books:
+                parts = book.split(",")
                 if parts[0] == kid and len(parts) >= 3:
-                    kategori = parts[2]
+                    category = parts[2]
                     break
 
-            # 1-10 arası puan al (Get rating between 1-10)
-            print(f"\n📝 '{kitap_adi}' kitabını puanlayın")
+            # Get rating between 1-10 // 1-10 arası puan al
+            print(f"\n📝 '{bookName}' rate the book")
             while True:
                 try:
-                    puan = int(input("1-10 arası puan verin (1=Çok Kötü, 10=Çok İyi): "))
-                    if 1 <= puan <= 10:
-                        puan_kaydi = f"{kid},{kitap_adi},{ogr_adi},{puan},{kategori}"
-                        satira_ekle("puanlar", puan_kaydi)
-                        print("\n✅ Puanınız kaydedildi!")
+                    score = int(input("Give a score of 1-10 (1=Very Bad, 10=Very Good): "))
+                    if 1 <= score <= 10:
+                        scoreRecord = f"{kid},{bookName},{stuName},{score},{category}"
+                        addToLine("score", scoreRecord)
+                        print("\n✅ Your score has been saved!")
                         break
                     else:
-                        print("⚠️ Lütfen 1-10 arası bir değer girin!")
+                        print("⚠️ Please enter a value between 1-10!")
                 except ValueError:
-                    print("⚠️ Geçersiz giriş! Lütfen sayı girin.")
+                    print("⚠️ Invalid entry! Please enter a number.")
         else:
-            yeni_emanetler.append(satir)
+            newEntrust.append(line)
 
-    if teslim_edilen:
-        satirlari_yaz("emanetler", yeni_emanetler)
-        print("\n✅ Kitap teslim edildi!")
+    if delivered:
+        writeLines("entrust", newEntrust)
+        print("\n✅ The book has been delivered!")
     else:
-        print("\n⚠️ Bu kitap ID ile sizin adınıza kayıtlı emanet bulunamadı.")
-    input("\nAna menüye dönmek için Enter'a basın...")
+        print("\n⚠️ No entrust was found registered in your name with this book ID.")
+    input("\nPress Enter to return to the main menu...")
 
-## Read and calculate book ratings / Kitap puanlarını okur ve hesaplar
-# Kitap puanlarını okuyan fonksiyon (Function to read book ratings)
-def kitap_puanlarini_oku():
-    puanlar = satirlari_oku("puanlar")
-    kitap_puanlari = {}
+# Read and calculate book ratings // Kitap puanlarını okur ve hesaplar
+# Function to read book ratings // Kitap puanlarını okuyan fonksiyon
+def readBookScores():
+    score = readLines("score")
+    scores = {}
 
-    for satir in puanlar:
-        if satir:
-            parts = satir.split(",")
-            if len(parts) >= 4:  # En az 4 bilgi olmalı (At least 4 info required)
+    for line in score:
+        if line:
+            parts = line.split(",")
+            if len(parts) >= 4:  # At least 4 info required // En az 4 bilgi olmalı
                 kid = parts[0]
-                kitap_adi = parts[1]
-                puan = parts[3]
-                kategori = parts[4] if len(parts) > 4 else "Bilinmiyor"
+                bookName = parts[1]
+                score = parts[3]
+                category = parts[4] if len(parts) > 4 else "Unknown"
 
-                if kid not in kitap_puanlari:
-                    kitap_puanlari[kid] = {
-                        'kitap_adi': kitap_adi,
-                        'kategori': kategori,
-                        'toplam_puan': 0,
-                        'puan_sayisi': 0,
-                        'ortalama': 0
+                if kid not in scores:
+                    scores[kid] = {
+                        'bookName': bookName,
+                        'category': category,
+                        'totalScore': 0,
+                        'numberOfPoints': 0,
+                        'average': 0
                     }
 
-                # Puan hesaplamaları (Rating calculations)
-                kitap_puanlari[kid]['toplam_puan'] += int(puan)
-                kitap_puanlari[kid]['puan_sayisi'] += 1
-                kitap_puanlari[kid]['ortalama'] = kitap_puanlari[kid]['toplam_puan'] / kitap_puanlari[kid]['puan_sayisi']
+                # Rating calculations Puan hesaplamaları
+                scores[kid]['totalScore'] += int(score)
+                scores[kid]['numberOfPoints'] += 1
+                scores[kid]['average'] = scores[kid]['totalScore'] / scores[kid]['numberOfPoints']
 
-    return kitap_puanlari
+    return scores
 
-# Öğrencinin okuduğu kitapların kategorilerini bul (Find categories of books student read)
-# Öğrencinin okuduğu kitapların kategorilerini bul (Find categories of books student read)
-def ogrenci_okuma_gecmisi(ogrenci_adi):
-    emanetler = satirlari_oku("emanetler")
-    teslimler = satirlari_oku("teslimler")
-    kitaplar = satirlari_oku("kitaplar")
+# Find categories of books student read // Öğrencinin okuduğu kitapların kategorilerini bul
+def student_reading_history(student_name):
+    entrust = readLines("entrust")
+    delivered = readLines("delivered")
+    books = readLines("books")
 
-    # Kitap ID - kategori eşleştirme (Book ID - category mapping)
-    kitap_kategorileri = {}
-    for kitap in kitaplar:
-        parts = kitap.split(",")
-        if len(parts) >= 3:  # ID, Ad, Kategori (ID, Name, Category)
-            kitap_kategorileri[parts[0]] = parts[2]
+    # Book ID - category mapping // Kitap ID - kategori eşleştirme
+    bookCategories = {}
+    for book in books:
+        parts = book.split(",")
+        if len(parts) >= 3:  # ID, Name, Category // ID, Ad, Kategori
+            bookCategories[parts[0]] = parts[2]
 
-    okunan_kategoriler = set()
+    readCategories = set()
 
-    # Emanet ve teslim edilen kitapları kontrol et (Check borrowed and returned books)
-    for kayit in emanetler + teslimler:
-        if ogrenci_adi in kayit:
-            kitap_id = kayit.split(",")[1]
-            if kitap_id in kitap_kategorileri:
-                okunan_kategoriler.add(kitap_kategorileri[kitap_id])
+    # Check borrowed and returned books // Emanet ve teslim edilen kitapları kontrol et
+    for registry in entrust + delivered:
+        if student_name in registry:
+            bookID = registry.split(",")[1]
+            if bookID in bookCategories:
+                readCategories.add(bookCategories[bookID])
 
-    return list(okunan_kategoriler)
+    return list(readCategories)
 
 
-# Kitap öneri fonksiyonu (Book recommendation function)
-def kitap_onerilerini_goster(kullanici_adi):
-    temizle()
-    print("\n📊 Kitap Önerileri")
+# Book recommendation function // Kitap öneri fonksiyonu
+def showBookSuggestions(userName):
+    clear()
+    print("\n📊 Book Recommendations")
 
-    puanlar = kitap_puanlarini_oku()
-    if not puanlar:
-        print("\n⚠️ Henüz yeterli puanlama yapılmamış.")
-        input("\nAna menüye dönmek için Enter'a basın...")
+    score = readBookScores()
+    if not score:
+        print("\n⚠️ Not enough ratings have been made yet.")
+        input("\nPress Enter to return to the main menu...")
         return
 
-    # Filtreleme seçenekleri
-    print("\n🔍 Filtreleme Seçenekleri:")
-    print("1 - Puan + Tür (Okuduğunuz türlerden en yüksek puanlılar)")
-    print("2 - Sadece Puan (Tüm kitaplarda en yüksek puanlılar)")
-    print("3 - Tüm Kitaplar (Puansız da dahil tüm kitaplar)")
-    print("4 - Tür Seçimi (Belirli bir türdeki tüm kitaplar)")
+    # Filtering options // Filtreleme seçenekleri
+    print("\n🔍 Filtering Options:")
+    print("1 - Score + Genre (The highest rated of the genres you read)")
+    print("2 - Only Score (Highest scores in all books)")
+    print("3 - All Books (All books including Unrated)")
+    print("4 - Genre Selection (All books in a certain genre)")
 
-    secim = input("\nFiltreleme seçiminiz (1-4): ")
+    choice = input("\nYour filtering choice (1-4): ")
 
-    if secim == "1":  # Puan + Tür
-        okunan_kategoriler = ogrenci_okuma_gecmisi(kullanici_adi)
+    if choice == "1":  # Points + Type // Puan + Tür
+        readCategories = student_reading_history(userName)
 
-        if not okunan_kategoriler:
-            print("\n⚠️ Henüz okuma geçmişiniz yok.")
-            input("\nAna menüye dönmek için Enter'a basın...")
+        if not readCategories:
+            print("\n⚠️ You don't have any reading history yet.")
+            input("\nPress Enter to return to the main menu...")
             return
 
-        print("\n🚀 Okuduğunuz türlerden en yüksek puanlı kitaplar:")
+        print("\n🚀 Highest rated books in the genres you read:")
 
-        # Kitapları kategorilere göre grupla
-        kitaplar_kategorili = {}
-        for kid, kitap in puanlar.items():
-            kategori = kitap['kategori']
-            if kategori not in kitaplar_kategorili:
-                kitaplar_kategorili[kategori] = []
-            kitaplar_kategorili[kategori].append(kitap)
+        # Group books by categories // Kitapları kategorilere göre grupla
+        booksCategorized = {}
+        for kid, book in score.items():
+            category = book['category']
+            if category not in booksCategorized:
+                booksCategorized[category] = []
+            booksCategorized[category].append(book)
 
-        for kategori in okunan_kategoriler:
-            if kategori in kitaplar_kategorili:
-                # Bubble Sort ile sıralama
-                kitaplar = kitaplar_kategorili[kategori]
-                n = len(kitaplar)
-                takas_yapildi = True
+        for category in readCategories:
+            if category in booksCategorized:
+                # Sorting with Bubble Sort // Bubble Sort ile sıralama
+                books = booksCategorized[category]
+                n = len(books)
+                swapDone = True
 
                 for i in range(n-1):
-                    if not takas_yapildi:
+                    if not swapDone:
                         break
-                    takas_yapildi = False
+                    swapDone = False
 
                     for k in range(0, n-i-1):
-                        if kitaplar[k]['ortalama'] < kitaplar[k+1]['ortalama']:
-                            kitaplar[k], kitaplar[k+1] = kitaplar[k+1], kitaplar[k]
-                            takas_yapildi = True
+                        if books[k]['average'] < books[k+1]['average']:
+                            books[k], books[k+1] = books[k+1], books[k]
+                            swapDone = True
 
-                print(f"\n📚 {kategori} Kategorisi:")
-                for i in range(min(3, len(kitaplar))):
-                    kitap = kitaplar[i]
-                    print(f"{i+1}. {kitap['kitap_adi']} - ⭐ {kitap['ortalama']:.1f}")
+                print(f"\n📚 {category} Category:")
+                for i in range(min(3, len(books))):
+                    book = books[i]
+                    print(f"{i+1}. {book['bookName']} - ⭐ {book['average']:.1f}")
 
-    elif secim == "2":  # Sadece Puan
-        print("\n🌟 Tüm Kitaplarda En Yüksek Puanlılar:")
+    elif choice == "2":  # Just Points // Sadece Puan
+        print("\n🌟 Highest Rated in All Books:")
 
-        tum_kitaplar = list(puanlar.values())
+        allBooks = list(score.values())
 
-        # Bubble Sort ile sıralama
-        n = len(tum_kitaplar)
-        takas_yapildi = True
+        # Sorting with Bubble Sort // Bubble Sort ile sıralama
+        n = len(allBooks)
+        swapDone = True
 
         for i in range(n-1):
-            if not takas_yapildi:
+            if not swapDone:
                 break
-            takas_yapildi = False
+            swapDone = False
 
             for k in range(0, n-i-1):
-                if tum_kitaplar[k]['ortalama'] < tum_kitaplar[k+1]['ortalama']:
-                    tum_kitaplar[k], tum_kitaplar[k+1] = tum_kitaplar[k+1], tum_kitaplar[k]
-                    takas_yapildi = True
+                if allBooks[k]['average'] < allBooks[k+1]['average']:
+                    allBooks[k], allBooks[k+1] = allBooks[k+1], allBooks[k]
+                    swapDone = True
 
-        for i in range(min(10, len(tum_kitaplar))):
-            kitap = tum_kitaplar[i]
-            print(f"{i+1}. {kitap['kitap_adi']} - ⭐ {kitap['ortalama']:.1f} - {kitap['kategori']}")
+        for i in range(min(10, len(allBooks))):
+            book = allBooks[i]
+            print(f"{i+1}. {book['bookName']} - ⭐ {book['average']:.1f} - {book['category']}")
 
-    elif secim == "3":  # Tüm Kitaplar
-        print("\n📚 Tüm Kitaplar (Puansız da dahil):")
+    elif choice == "3":  # All Books // Tüm Kitaplar
+        print("\n📚 All Books (Including Unrated):")
 
-        tum_kitaplar = satirlari_oku("kitaplar")
-        puanli_kitaplar = [kitap['kitap_adi'] for kitap in puanlar.values()]
+        allBooks = readLines("books")
+        ratedBooks = [book['bookName'] for book in score.values()]
 
-        for i, kitap in enumerate(tum_kitaplar, 1):
-            parts = kitap.split(",")
-            kitap_adi = parts[1] if len(parts) > 1 else "Bilinmeyen"
-            durum = "⭐ Puanlı" if kitap_adi in puanli_kitaplar else "📖 Puansız"
-            print(f"{i}. {kitap_adi} - {durum}")
+        for i, book in enumerate(allBooks, 1):
+            parts = book.split(",")
+            bookName = parts[1] if len(parts) > 1 else "Unknown"
+            durum = "⭐ With Points" if bookName in ratedBooks else "📖 Without Points"
+            print(f"{i}. {bookName} - {durum}")
 
-    elif secim == "4":  # Tür Seçimi
+    elif choice == "4":  # Type Selection // Tür Seçimi
         print("\n📂 Mevcut Türler:")
 
-        # Tüm türleri listele
-        kitaplar = satirlari_oku("kitaplar")
-        tum_turler = set()
+        # List all types // Tüm türleri listele
+        books = readLines("books")
+        allKinds = set()
 
-        for kitap in kitaplar:
-            parts = kitap.split(",")
+        for book in books:
+            parts = book.split(",")
             if len(parts) > 2:
-                tum_turler.add(parts[2])
+                allKinds.add(parts[2])
 
-        for i, tur in enumerate(sorted(tum_turler), 1):
-            print(f"{i}. {tur}")
+        for i, kind in enumerate(sorted(allKinds), 1):
+            print(f"{i}. {kind}")
 
-        tur_secim = input("\nGörüntülemek istediğiniz tür numarası: ")
+        kindSelection = input("\nType number you want to display: ")
 
         try:
-            tur_secim = int(tur_secim)
-            secilen_tur = sorted(tum_turler)[tur_secim-1]
+            kindSelection = int(kindSelection)
+            chosenKind = sorted(allKinds)[kindSelection-1]
 
-            print(f"\n📚 {secilen_tur} Türündeki Kitaplar:")
+            print(f"\n📚 {chosenKind} books in Kinds:")
 
-            # Puanlı kitapları göster
-            puanli_kitaplar = []
-            for kid, kitap in puanlar.items():
-                if kitap['kategori'] == secilen_tur:
-                    puanli_kitaplar.append(kitap)
+            # Show rated books // Puanlı kitapları göster
+            ratedBooks = []
+            for kid, book in score.items():
+                if book['category'] == chosenKind:
+                    ratedBooks.append(book)
 
-            if puanli_kitaplar:
-                print("\n⭐ Puanlı Kitaplar:")
-                for i, kitap in enumerate(puanli_kitaplar, 1):
-                    print(f"{i}. {kitap['kitap_adi']} - ⭐ {kitap['ortalama']:.1f}")
+            if ratedBooks:
+                print("\n⭐ Books with Points:")
+                for i, book in enumerate(ratedBooks, 1):
+                    print(f"{i}. {book['bookName']} - ⭐ {book['avarage']:.1f}")
 
-            # Puansız kitapları göster
-            puansiz_kitaplar = []
-            for kitap in kitaplar:
-                parts = kitap.split(",")
-                if len(parts) > 2 and parts[2] == secilen_tur:
-                    kitap_adi = parts[1]
-                    if not any(k['kitap_adi'] == kitap_adi for k in puanli_kitaplar):
-                        puansiz_kitaplar.append(kitap_adi)
+            # Show unrated books // Puansız kitapları göster
+            scorelessBooks = []
+            for book in books:
+                parts = book.split(",")
+                if len(parts) > 2 and parts[2] == chosenKind:
+                    bookName = parts[1]
+                    if not any(k['bookName'] == bookName for k in ratedBooks):
+                        scorelessBooks.append(bookName)
 
-            if puansiz_kitaplar:
-                print("\n📖 Puansız Kitaplar:")
-                for i, kitap in enumerate(puansiz_kitaplar, 1):
-                    print(f"{i}. {kitap}")
+            if scorelessBooks:
+                print("\n📖 Books without scores:")
+                for i, book in enumerate(scorelessBooks, 1):
+                    print(f"{i}. {book}")
 
-            if not puanli_kitaplar and not puansiz_kitaplar:
-                print("\n⚠️ Bu türde kitap bulunamadı.")
+            if not ratedBooks and not scorelessBooks:
+                print("\n⚠️ No books found in this genre.")
 
         except (ValueError, IndexError):
-            print("\n⚠️ Geçersiz tür seçimi!")
+            print("\n⚠️ Invalid type selection!")
 
     else:
-        print("\n⚠️ Geçersiz seçim!")
+        print("\n⚠️ Invalid selection!")
 
-    input("\nAna menüye dönmek için Enter'a basın...")
-# Kütüphaneci paneli işlemleri
+    input("\nPress Enter to return to the main menu...")
+# Librarian panel operations //Kütüphaneci paneli işlemleri
 
-# Kütüphaneci paneli
-def kutuphaneci_paneli():
+# Librarian panel // Kütüphaneci paneli
+def librarianPanel():
     while True:
-        temizle()  # Ekranı temizler
-        print("\n🔐 Kütüphaneci Paneli")  # Kütüphaneci paneli başlığı
-        print("1 - Kitap Ekle")  # Kitap ekleme seçeneği
-        print("2 - Kitap Sil")  # Kitap silme seçeneği
-        print("3 - Kitap Listesini Göster")  # Kitap listesini gösterme seçeneği
-        print("4 - Emanet Edilen Kitapları Görüntüle")  # Emanet edilen kitapları gösterme seçeneği
-        print("5 - Teslim Edilen Kitapları Görüntüle")  # Teslim edilen kitapları gösterme seçeneği
-        print("6 - Öğrenci Kaydı Ekle")  # Öğrenci kaydetme seçeneği
-        print("7 - Kayıtlı Öğrencileri Görüntüle")  # Kayıtlı öğrencileri gösterme seçeneği
-        print("8 - Kitap Puan İstatistiklerini Görüntüle")  # Yeni eklenen seçenek
-        print("9 - Çıkış")
-        secim = input("\nSeçiminiz: ")  # Kullanıcıdan seçim alır
+        clear()  # Cleans the screen // Ekranı temizler
+        print("\n🔐 Librarian Panel")  # Librarian panel title // Kütüphaneci paneli başlığı
+        print("1 - Add Book")  # Option to add books // Kitap ekleme seçeneği
+        print("2 - Delete Book")  # Book delete option // Kitap silme seçeneği
+        print("3 - Show Book List")  # Option to show book list // Kitap listesini gösterme seçeneği
+        print("4 - View Entrusted Books")  # Option to show deposited books // Emanet edilen kitapları gösterme seçeneği
+        print("5 - View Delivered Books")  # Option to show delivered books // Teslim edilen kitapları gösterme seçeneği
+        print("6 - Add Student Registration")  # Student enrollment option // Öğrenci kaydetme seçeneği
+        print("7 - View Registered Students")  # Option to show registered students // Kayıtlı öğrencileri gösterme seçeneği
+        print("8 - View Book Rating Statistics")  # Newly added option // Yeni eklenen seçenek
+        print("9 - Exit")
+        choice = input("\nYour choice: ")  # Takes selection from user // Kullanıcıdan seçim alır
 
-        if secim == "1":
-            kitap_adi = input("Kitap adı: ")  # Kitap adı girilir
-            tur = input("Türü: ")  # Kitap türü girilir
-            raf = input("Raf No: ")  # Kitap raf numarası girilir
-            sira = input("Sıra No: ")  # Kitap sıra numarası girilir
-            kitap_id = str(yeni_kitap_id())  # Yeni kitap ID'si oluşturulur
-            kayit = f"{kitap_id},{kitap_adi},{tur},{raf},{sira}"  # Kitap bilgileri birleştirilir
-            satira_ekle("kitaplar", kayit)  # Kitap bilgileri kitaplar.txt dosyasına eklenir
-            print("\n✅ Kitap eklendi.")  # Başarılı ekleme mesajı
-            input("Devam etmek için Enter...")  # Kullanıcıdan devam etmek için tuşlama beklenir
+        if choice == "1":
+            bookName = input("Book name: ")  # Enter the book name // Kitap adı girilir
+            kind = input("Kind: ")  # Enter the book type // Kitap türünü girilir
+            raf = input("Shelf No: ")  # Enter the book shelf number // Kitap raf numarası girilir
+            sira = input("Sequence Number: ")  # Kitap sıra numarası girilir // Book serial number is entered
+            bookID = str(newBookID())  # New book ID is created // Yeni kitap ID'si oluşturulur
+            registry = f"{bookID},{bookName},{kind},{raf},{sira}"  # Book information is combined // Kitap bilgileri birleştirilir
+            addToLine("books", registry)  # Book information is added to the books.txt file // Kitap bilgileri books.txt dosyasına eklenir
+            print("\n✅ The book has been added.")  # Successful insertion message // Başarılı ekleme mesajı
+            input("Press Enter to continue...")  # The user is expected to press to continue. // Kullanıcıdan devam etmek için tuşlama beklenir
 
-        elif secim == "2":
-            kitaplar = satirlari_oku("kitaplar")  # Kitaplar.txt dosyasındaki kitaplar okunur
-            if not kitaplar:  # Eğer kitaplar listesi boşsa
-                print("\n⚠️ Kitap listesi boş.")  # Uyarı mesajı
+        elif choice == "2":
+            books = readLines("books")  # The books in the Kitaplar.txt file are read // Kitaplar.txt dosyasındaki books okunur
+            if not books:  # If the books list is empty // Eğer books listesi boşsa
+                print("\n⚠️ The book list is empty.")  # Warning message // Uyarı mesajı
             else:
-                for k in kitaplar:  # Kitaplar listesi ekrana yazdırılır
+                for k in books:  # The list of books is printed on the screen // Kitaplar listesi ekrana yazdırılır
                     print(k)
-                silinecek_id = input("Silmek istediğiniz kitap ID: ")  # Silinecek kitap ID'si girilir
-                kitaplar = [k for k in kitaplar if not k.startswith(silinecek_id + ",")]  # Silinecek kitap listeden çıkarılır
-                satirlari_yaz("kitaplar", kitaplar)  # Güncellenmiş kitap listesi kitaplar.txt dosyasına yazılır
-                print("\n✅ Kitap silindi.")  # Başarılı silme mesajı
-            input("Devam etmek için Enter...")  # Kullanıcıdan devam etmek için tuşlama beklenir
+                deleted_id = input("Book ID you want to delete: ")  # The ID of the book to be deleted is entered // Silinecek kitap ID'si girilir
+                books = [k for k in books if not k.startswith(deleted_id + ",")]  # The book to be deleted is removed from the list // Silinecek kitap listeden çıkarılır
+                writeLines("books", books)  # The updated book list is written to the books.txt file // Güncellenmiş kitap listesi books.txt dosyasına yazılır
+                print("\n✅ The book was deleted.")
+            input("Press Enter to continue...")  # The user is expected to press Enter key to continue // Kullanıcıdan devam etmek için tuşlama beklenir
 
-        elif secim == "3":
-            kitaplar = satirlari_oku("kitaplar")  # Kitaplar listesi okunur
-            if not kitaplar:  # Eğer kitaplar listesi boşsa
-                print("\n⚠️ Kitap listesi boş.")  # Uyarı mesajı
+        elif choice == "3":
+            books = readLines("books")  # List of books to read // Kitaplar listesi okunur
+            if not books:  # If the books list is empty // Eğer books listesi boşsa
+                print("\n⚠️ The book list is empty.")
             else:
-                for k in kitaplar:  # Kitaplar ekrana yazdırılır
+                for k in books:  # Books are printed on the screen // Kitaplar ekrana yazdırılır
                     print(k)
-            input("Devam etmek için Enter...")  # Kullanıcıdan devam etmek için tuşlama beklenir
+            input("Press Enter to continue...")  # The user is expected to press Enter key to continue // Kullanıcıdan devam etmek için tuşlama beklenir
 
-        elif secim == "4":
-            emanetler = satirlari_oku("emanetler")  # Emanet kitaplar listesi okunur
-            if not emanetler:  # Eğer emanetler listesi boşsa
-                print("\n⚠️ Emanet edilen kitap bulunamadı.")  # Uyarı mesajı
+        elif choice == "4":
+            entrust = readLines("entrust")  # The list of entrusted books is read // Emanet books listesi okunur
+            if not entrust:  # If the list of relics is empty // Eğer emanetler listesi boşsa
+                print("\n⚠️ The entrusted book was not found.")
             else:
-                for e in emanetler:  # Emanet kitaplar ekrana yazdırılır
+                for e in entrust:  # The entrusted books are printed on the screen // Emanet books ekrana yazdırılır
                     print(e)
-            input("Devam etmek için Enter...")  # Kullanıcıdan devam etmek için tuşlama beklenir
+            input("Press Enter to continue...")  # The user is expected to press Enter key to continue // Kullanıcıdan devam etmek için tuşlama beklenir
 
-        elif secim == "5":
-            teslimler = satirlari_oku("teslimler")  # Teslim edilen kitaplar listesi okunur
-            if not teslimler:  # Eğer teslimler listesi boşsa
-                print("\n⚠️ Henüz teslim edilen kitap yok.")  # Uyarı mesajı
+        elif choice == "5":
+            delivered = readLines("delivered")  # The list of "books" delivered is read // Teslim edilen books listesi okunur
+            if not delivered:  # If the list of checked out books is empty // Eğer teslimler listesi boşsa
+                print("\n⚠️ No books have been delivered yet.")
             else:
-                for t in teslimler:  # Teslim edilen kitaplar ekrana yazdırılır
+                for t in delivered:  # Delivered "books" are printed on the screen // Teslim edilen books ekrana yazdırılır
                     print(t)
-            input("Devam etmek için Enter...")  # Kullanıcıdan devam etmek için tuşlama beklenir
+            input("Press Enter to continue...")  # The user is expected to press Enter key to continue // Kullanıcıdan devam etmek için tuşlama beklenir
 
-        elif secim == "6":
-            # Öğrenci kaydı eklemek
-            ogrenci_adi = input("Öğrenci adı: ")  # Öğrenci adı girilir
-            ogrenci_sifre = input("Öğrenci şifresi: ")  # Öğrenci şifresi girilir
-            ogrenci_kaydi = f"{ogrenci_adi},{ogrenci_sifre}"  # Öğrenci bilgileri birleştirilir
-            satira_ekle("ogrenciler", ogrenci_kaydi)  # Öğrenci bilgileri ogrenciler.txt dosyasına eklenir
-            print("\n✅ Öğrenci kaydedildi.")  # Başarılı kayıt mesajı
-            input("Devam etmek için Enter...")  # Kullanıcıdan devam etmek için tuşlama beklenir
+        elif choice == "6":
+            # Add a student record // Öğrenci kaydı eklemek
+            student_name = input("Student username: ")  # Enter the student username // Öğrenci kullanıcı adı girilir
+            student_password = input("Student password: ")  # Student password is entered // Öğrenci şifresi girilir
+            student_record = f"{student_name},{student_password}"  # Student information is combined // Öğrenci bilgileri birleştirilir
+            addToLine("students", student_record)  # Student information is added to the students.txt file // Öğrenci bilgileri students.txt dosyasına eklenir
+            print("\n✅ The student was registered.")
+            input("Press Enter to continue...")  # The user is expected to press Enter key to continue // Kullanıcıdan devam etmek için tuşlama beklenir
 
-        elif secim == "7":
-            ogrenciler = satirlari_oku("ogrenciler")  # Kayıtlı öğrenciler dosyasını oku
-            if not ogrenciler:  # Eğer öğrenci listesi boşsa
-                print("\n⚠️ Öğrenci listesi boş.")  # Uyarı mesajı
+        elif choice == "7":
+            students = readLines("students")  # Read the registered students file // Kayıtlı öğrenciler dosyasını oku
+            if not students:  # If the student list is empty // Eğer öğrenci listesi boşsa
+                print("\n⚠️ The student list is empty.")
             else:
-                print("\nKayıtlı Öğrenciler:")  # Öğrenci listesi başlığı
-                for ogrenci in ogrenciler:  # Öğrenciler listesi ekrana yazdırılır
-                    print(ogrenci)
-            input("Devam etmek için Enter...")  # Kullanıcıdan devam etmek için tuşlama beklenir
+                print("\nRegistered Students:")  # Student list title // Öğrenci listesi başlığı
+                for student in students:  # The list of students is printed on the screen // Öğrenciler listesi ekrana yazdırılır
+                    print(student)
+            input("Press Enter to continue...")  # The user is expected to press Enter key to continue // Kullanıcıdan devam etmek için tuşlama beklenir
 
-        elif secim == "8":
-            temizle()
-            print("\n📈 Kitap Puan İstatistikleri")
-            puanlar = kitap_puanlarini_oku()
-            if not puanlar:
-                print("\n⚠️ Henüz puanlama yapılmamış.")
+        elif choice == "8":
+            clear()
+            print("\n📈 Book Score Statistics")
+            score = readBookScores()
+            if not score:
+                print("\n⚠️ No ratings have been made yet.")
             else:
-                tum_kitaplar = list(puanlar.values())
-                tum_kitaplar.sort(key=lambda x: x['ortalama'], reverse=True)
+                allBooks = list(score.values())
+                allBooks.sort(key=lambda x: x['average'], reverse=True)
 
-                print("\nSıra | Kitap Adı | Ortalama | Puan Sayısı | Kategori")
+                print("\nRank | Book Name | Average | Number of Points | Category")
                 print("-" * 60)
-                for i, kitap in enumerate(tum_kitaplar, 1):
-                    print(f"{i:4} | {kitap['kitap_adi'][:25]:25} | {kitap['ortalama']:7.1f} | {kitap['puan_sayisi']:10} | {kitap['kategori']}")
-            input("\nDevam etmek için Enter...")
+                for i, book in enumerate(allBooks, 1):
+                    print(f"{i:4} | {book['bookName'][:25]:25} | {book['average']:7.1f} | {book['numberOfPoints']:10} | {book['category']}")
+            input("\nPress Enter to continue...")
 
-        elif secim == "9":
-            break  # Panelden çıkış yapılır
+        elif choice == "9":
+            break  # Exit from the panel // Panelden çıkış yapılır
 
         else:
-            print("\n⚠️ Geçersiz seçim.")  # Geçersiz seçim uyarısı
-            time.sleep(2)  # 2 saniye bekler ve kullanıcıyı tekrar menüye yönlendirir
+            print("\n⚠️ Invalid selection.")
+            time.sleep(2)  # Waits for 2 seconds and directs the user back to the menu // 2 saniye bekler ve kullanıcıyı tekrar menüye yönlendirir
 
 
-# Ana programın başlangıç noktası
+# Starting point of the main program // Ana programın başlangıç noktası
 if __name__ == "__main__":
-    dosya_var_mi()  # Gerekli dosyalar yoksa oluştur
+    isFileExistent()  # Create required files if they do not exist // Gerekli dosyalar yoksa oluştur
     while True:
-        temizle() # Önce ekranı temizle
-        print("\n📚 Akıllı Kütüphane Asistanı", flush=True) #flush=True çıktının hemen ekrana yazdırılmasını sağlar
-        print("1 - Kütüphaneci Girişi")
-        print("2 - Öğrenci Girişi")
-        print("3 - Çıkış")
-        secim = input("\nSeçiminiz: ")
+        clear() # Clean the screen first // Önce ekranı temizle
+        print("\n📚 Smart Library Assistant", flush=True) #flush=True prints the output to the screen immediately // flush=True çıktının hemen ekrana yazdırılmasını sağlar
+        print("1 - Librarian Login")
+        print("2 - Student Login")
+        print("3 - Exit")
+        choice = input("\nYour choice: ")
 
-        if secim == "1":
-            kullanici = input("Kütüphaneci adı: ")
-            sifre = input("Şifre: ")
-            if kullanici_dogrula("kutuphaneci", kullanici, sifre):
-                kutuphaneci_paneli()
+        if choice == "1":
+            user = input("Librarian name: ")
+            password = input("Password: ")
+            if userVerify("librarian", user, password):
+                librarianPanel()
             else:
-                print("\n❌ Hatalı giriş!")
+                if userVerify("students", user, password):
+                    print("\n❌ This user is registered only as a student, not a librarian!")
+                else:
+                    print("\n❌ Incorrect login!")
                 time.sleep(2)
 
-        elif secim == "2":
-            kullanici = input("Öğrenci adı soyadı: ")
-            sifre = input("Şifre: ")
-            if kullanici_dogrula("ogrenciler", kullanici, sifre):
+        elif choice == "2":
+            user = input("Student username: ")
+            password = input("Password: ")
+            if userVerify("students", user, password):
 
-                # Öğrenci girişi yapıldığında while True döngüsü içinde:
+                # When the student is logged in, inside the while True loop: // Öğrenci girişi yapıldığında while True döngüsü içinde:
              while True:
-                temizle()
-                print(f"\n👤 Hoşgeldin {kullanici}")
-                print("1 - Kitap Al")
-                print("2 - Kitap Teslim Et")
-                print("3 - Kitap Önerilerini Görüntüle")  # Yeni eklenen seçenek
-                print("4 - Çıkış Yap")
-                secim_o = input("\nSeçiminiz: ")
+                clear()
+                print(f"\n👤 Welcome {user}")
+                print("1 - Get a Book")
+                print("2 - Deliver Books")
+                print("3 - View Book Recommendations")
+                print("4 - Log Out")
+                choice_o = input("\nYour choice: ")
 
-                if secim_o == "1":
-                 kitap_al(kullanici)
-                elif secim_o == "2":
-                    kitap_teslim_et()
-                elif secim_o == "3":  # Yeni eklenen öneri seçeneği
-                    kitap_onerilerini_goster(kullanici)
-                elif secim_o == "4":
+                if choice_o == "1":
+                 getBook(user)
+                elif choice_o == "2":
+                    deliverAbook()
+                elif choice_o == "3":
+                    showBookSuggestions(user)
+                elif choice_o == "4":
                     break
                 else:
-                    print("\n⚠️ Geçersiz seçim.")
+                    print("\n⚠️ Invalid selection.")
                     time.sleep(2)
             else:
-               print("\n❌ Hatalı giriş!")
+               print("\n❌ Incorrect entry!")
                time.sleep(2)
 
-        elif secim == "3":
-            print("\nÇıkılıyor...")
+        elif choice == "3":
+            print("\nExiting...")
             time.sleep(1)
-            break  # Programdan çıkış
+            break  # Exit the program // Programdan çıkış
 
         else:
-            print("\n⚠️ Geçersiz seçim.")
+            print("\n⚠️ Invalid selection.")
             time.sleep(2)
