@@ -1,3 +1,0 @@
-Ömer Faruk,1001,Harry Potter Azkaban,2025-05-05,
-samet erdoğan,1030,Eski Dünyanın Hikayesi,2025-05-05,Ömer Faruk,1002,harry potter,2025-05-06,
-Ömer Faruk,1030,Eski Dünyanın Hikayesi,2025-05-07,
