@@ -373,7 +373,7 @@ def showBookSuggestions(userName):
             if ratedBooks:
                 print("\n⭐ Books with Points:")
                 for i, book in enumerate(ratedBooks, 1):
-                    print(f"{i}. {book['bookName']} - ⭐ {book['avarage']:.1f}")
+                    print(f"{i}. {book['bookName']} - ⭐ {book['average']:.1f}")
 
             # Show unrated books // Puansız kitapları göster
             scorelessBooks = []
