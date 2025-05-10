@@ -40,9 +40,11 @@ python Library-System.py
 
 2. Follow the prompts to manage or borrow books
 
-3. Rolünüzü seçin: Kütüphaneci veya Öğrenci
+----------------------------------------------------
 
-4. Kitapları yönetmek veya ödünç almak için yönlendirmeleri takip edin
+1. Rolünüzü seçin: Kütüphaneci veya Öğrenci
+
+2. Kitapları yönetmek veya ödünç almak için yönlendirmeleri takip edin
 
 ---
 
