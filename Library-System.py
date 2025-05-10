@@ -108,12 +108,13 @@ def writeLines(file, lines):
 # Username and password verification process (case sensitive) // Kullanıcı adı ve şifre doğrulama işlemi (büyük küçük harf duyarlı)
 def userVerify(file, userName, password):
     for line in readLines(file):
-        ad, pw = line.split(",")
-           # Comparison ignoring spaces and case insensitive // Boşlukları yok sayarak ve büyük/küçük harf duyarsız karşılaştırma
-        if (userName.replace(" ", "").lower() == userName.replace(" ", "").lower()
-            and password == pw):
+        ad, pw = line.strip().split(",")  # Dosyadan kullanıcı adı ve şifreyi al
+        # Karşılaştırmayı boşlukları kaldırarak ve büyük/küçük harf duyarsız yap
+        if (userName.replace(" ", "").lower() == ad.replace(" ", "").lower()
+            and password == pw.strip()):
             return True
     return False
+
 
 
 # Creates new book ID // Yeni kitap ID'si oluşturur
