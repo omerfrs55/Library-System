@@ -167,8 +167,8 @@ return max(availableIDs, default=1000) + 1
 
 ---
 
-## License
+## Names of the People Who Made the Project
 
-MIT License
+ÖMER FARUK SAĞLAM - SAMET ERDOĞAN
 
 ---
