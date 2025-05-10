@@ -1,159 +1,174 @@
-# Akıllı Kütüphane Yönetim Sistemi / Smart Library Management System
+# Smart Library Assistant - Akıllı Kütüphane Asistanı
 
-<div align="center">
+## Project Overview - Proje Genel Bakış
 
-<img src="https://img.icons8.com/color/96/000000/library.png" alt="logo"/>
+The Smart Library Assistant is a console-based library management system for students and librarians. It allows book borrowing, returning, rating, and recommendations.
 
-<h3>Python ile geliştirilmiş kütüphane otomasyon sistemi</h3>
+Akıllı Kütüphane Asistanı, öğrenciler ve kütüphaneciler için konsol tabanlı bir kütüphane yönetim sistemidir. Kitap ödünç alma, iade, puanlama ve öneri işlevleri sunar.
 
-<h3>Python-powered library automation system</h3>
+---
 
-</div>
+## Features - Özellikler
 
-## 📋 Türkçe Dokümantasyon
+* User roles: Librarian and Student // Kullanıcı rolleri: Kütüphaneci ve Öğrenci
+* Book borrowing and returning // Kitap ödünç alma ve iade
+* Book rating after return // İade sonrası kitap puanlama
+* Book recommendations by genre or rating // Tür veya puana göre kitap önerileri
+* Student registration and book management // Öğrenci kaydı ve kitap yönetimi
 
-### ✨ Özellikler
+---
 
-- ****Çift Kullanıcı Modu****
+## Installation - Kurulum
 
-- 📚 Öğrenci Paneli: Kitap ödünç alma/teslim etme
+1. Clone the repository: // Depoyu klonlayın
 
-- 👨‍💼 Kütüphaneci Paneli: Kitap ve kullanıcı yönetimi
+```
+git clone https://github.com/username/Library-System.git
+```
 
-- ****Kitap Yönetimi****
+2. Run the program: // Programı çalıştırın
 
-- ✅ Kitap ödünç alma/teslim etme (1 kitap/kullanıcı limiti)
+```
+python Library-System.py
+```
 
-- ⭐ 1-10 arası puanlama sistemi
+---
 
-- 🔍 Kişiselleştirilmiş kitap önerileri
+## Usage - Kullanım
 
-- ****Güvenlik****
+1. Choose your role: Librarian or Student
 
-- 🔐 Şifre korumalı giriş
+2. Follow the prompts to manage or borrow books
 
-- ⏳ 14 gün otomatik teslim süresi
+3. Rolünüzü seçin: Kütüphaneci veya Öğrenci
 
-### 🛠️ Kurulum
+4. Kitapları yönetmek veya ödünç almak için yönlendirmeleri takip edin
 
-```bash
+---
 
-# Gereksinimler:
+## Functions - Fonksiyonlar
 
-git clone https://github.com/sizin-repo.git
+### getBook(userName)
 
-cd kutuphane-sistemi
+Purpose: Borrow a book // Amaç: Kitap ödünç alma
 
-🏃‍♂️ Çalıştırma
+#### Code Explanation - Kod Açıklaması
 
-bash
+```python
+clear()  # Clears the screen
+books = readLines("books")  # Reads book list from file
+```
 
-python3 kutuphane.py
+1. `clear()`: Ekranı temizler.
+2. `books = readLines("books")`: Kitap listesini dosyadan okur.
 
-📂 Veri Dosyaları
+---
 
-Dosya Adı	Açıklama
+### deliverAbook()
 
-ogrenciler.txt	Öğrenci bilgileri (ad,şifre)
+Purpose: Return a book // Amaç: Kitap iadesi
 
-kitaplar.txt	Kitap envanteri (ID,ad,tür)
+#### Code Explanation - Kod Açıklaması
 
-emanetler.txt	Ödünç alınan kitaplar
+```python
+clear()  # Clears the screen
+ad = input("Your username: ")  # Takes username
+```
 
-teslimler.txt	Teslim edilen kitaplar
+1. `clear()`: Ekranı temizler.
+2. `ad = input(...)`: Kullanıcı adını alır.
 
-puanlar.txt	Kitap değerlendirmeleri
+---
 
-👨‍💼 Kütüphaneci İşlemleri
+### librarianPanel()
 
-Yeni kitap ekleme
+Purpose: Manage books and students // Amaç: Kitap ve öğrenci yönetimi
 
-Kitap silme
+#### Code Explanation - Kod Açıklaması
 
-Öğrenci kaydı oluşturma
+```python
+clear()  # Clears the screen
+print("\n🔐 Librarian Panel")  # Shows librarian panel title
+```
 
-Emanet takibi
+1. `clear()`: Ekranı temizler.
+2. `print(...)`: Kütüphaneci panel başlığını gösterir.
 
-👨‍🎓 Öğrenci İşlemleri
+---
 
-Kitap ödünç alma
+### readLines(file)
 
-Kitap teslim etme
+Purpose: Read data from a file // Amaç: Dosyadan veri okuma
 
-Kitap puanlama
+#### Code Explanation - Kod Açıklaması
 
-Öneri görüntüleme
+```python
+with open(files[file], "r", encoding="utf-8") as f:
+    return [line.strip() for line in f.readlines() if line.strip()]
+```
 
-📋 English Documentation
+1. Opens the file in read mode. // Dosyayı okuma modunda açar.
+2. Reads and cleans each line. // Her satırı okur ve temizler.
+3. Returns the list of cleaned lines. // Temizlenmiş satırların listesini döndürür.
 
-✨ Features
+---
 
-Dual User Mode
+### addToLine(file, data)
 
-📚 Student Panel: Book borrowing/returning
+Purpose: Add data to a file // Amaç: Dosyaya veri ekleme
 
-👨‍💼 Librarian Panel: Book and user management
+#### Code Explanation - Kod Açıklaması
 
-Book Management
+```python
+with open(files[file], "a", encoding="utf-8") as f:
+    f.write(data + "\n")  # Adds data to the end
+```
 
-✅ Borrow/return books (1 book/user limit)
+1. Opens the file in append mode. // Dosyayı ekleme modunda açar.
+2. Adds the data at the end. // Veriyi sona ekler.
 
-⭐ 1-10 rating system
+---
 
-🔍 Personalized book recommendations
+### userVerify(file, userName, password)
 
-Security
+Purpose: Verify user credentials // Amaç: Kullanıcı bilgilerini doğrulama
 
-🔐 Password authentication
+#### Code Explanation - Kod Açıklaması
 
-⏳ 14-day auto return system
+```python
+for line in readLines(file):
+    ad, pw = line.strip().split(",")
+    if userName == ad and password == pw:
+        return True
+return False
+```
 
-🛠️ Installation
+1. Loops through users in the file. // Dosyadaki kullanıcıları döngüye alır.
+2. Checks if the username and password match. // Kullanıcı adı ve şifre eşleşmesini kontrol eder.
+3. Returns True if matched, False if not. // Eşleşirse True, değilse False döndürür.
 
-bash
+---
 
-# Requirements:
+### newBookID()
 
-git clone https://github.com/your-repo.git
+Purpose: Generate a unique book ID // Amaç: Benzersiz kitap ID oluşturma
 
-cd library-system
+#### Code Explanation - Kod Açıklaması
 
-🏃‍♂️ Running
+```python
+books = readLines("books")
+availableIDs = [int(book.split(",")[0]) for book in books]
+return max(availableIDs, default=1000) + 1
+```
 
-bash
+1. Reads book IDs from the file. // Dosyadan kitap ID'lerini okur.
+2. Finds the highest ID. // En yüksek ID'yi bulur.
+3. Returns the next ID. // Sonraki ID'yi döndürür.
 
-python3 library.py
+---
 
-📂 Data Files
+## License
 
-File Name	Description
+MIT License
 
-students.txt	Student credentials
-
-books.txt	Book inventory (ID,name,type)
-
-borrowed.txt	Checked out books
-
-returns.txt	Returned books
-
-ratings.txt	Book ratings
-
-👨‍💼 Librarian Functions
-
-Add new books
-
-Remove books
-
-Create student accounts
-
-Track checkouts
-
-👨‍🎓 Student Functions
-
-Borrow books
-
-Return books
-
-Rate books
-
-View recommendations
+---
